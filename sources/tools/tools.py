@@ -1,18 +1,17 @@
-
 """
-define a generic tool class, any tool can be used by the agent.
+定义一个通用工具类，任何工具都可以由代理使用。
 
-A tool can be used by deepseek like so:
-```<tool name>
-<code or query to execute>
+工具可以像下面这样被deepseek使用：
+```<工具名称>
+<执行的代码或查询>
 ```
 
-For example:
+例如:
 ```python
 print("Hello world")
 ```
-This is then executed by the tool with its own class implementation of execute().
-A tool is not just for code tool but also API, internet, etc..
+此代码将由工具执行，并使用该工具自己的类实现来执行。
+工具不仅可以是代码工具，还可以是API、互联网等。
 """
 
 import sys
@@ -24,44 +23,44 @@ sys.path.append('..')
 
 class Tools():
     """
-    Abstract class for all tools.
+    所有工具的抽象类。.
     """
     def __init__(self):
-        self.tag = "undefined"
-        self.api_key = None
-        self.client = None
-        self.messages = []
-        self.config = configparser.ConfigParser()
-        self.current_dir = self.create_work_dir()
-        self.excutable_blocks_found = False
-    
+        self.tag = "undefined"# 工具的标记，默认值为undefined
+        self.api_key = None# API密钥，默认值为空
+        self.client = None# 客户端对象，默认值为空
+        self.messages = []# 存储消息的列表
+        self.config = configparser.ConfigParser()# 配置文件读取器
+        self.current_dir = self.create_work_dir()# 当前工作目录
+        self.excutable_blocks_found = False# 是否找到可执行代码块
+
     def check_config_dir_validity(self):
         """
-        Check if the config directory is valid.
+        检查配置目录的有效性。
         """
         path = self.config['MAIN']['work_dir']
         if path == "":
-            print("WARNING: Work directory not set in config.ini")
+            print("警告: 配置文件中未设置工作目录")
             return False
         if path.lower() == "none":
-            print("WARNING: Work directory set to none in config.ini")
+            print("警告: 配置文件中设置的工作目录为 none")
             return False
         if not os.path.exists(path):
-            print(f"WARNING: Work directory {path} does not exist")
+            print(f"警告: 工作目录 {path} 不存在")
             return False
         return True
-    
+
     def config_exists(self):
         """
-        Check if the config file exists.
+        检查配置文件是否存在。
         """
         return os.path.exists('./config.ini')
 
     def create_work_dir(self):
         """
-        Create the work directory if it does not exist.
+        如果工作目录不存在，则创建工作目录。
         """
-        default_path = os.path.dirname(os.getcwd())
+        default_path = os.path.dirname(os.getcwd())  # 默认路径为当前工作目录
         if self.config_exists():
             self.config.read('./config.ini')
             config_path = self.config['MAIN']['work_dir']
@@ -71,46 +70,46 @@ class Tools():
         return dir_path
 
     @abstractmethod
-    def execute(self, blocks:[str], safety:bool) -> str:
+    def execute(self, blocks: [str], safety: bool) -> str:
         """
-        Abstract method that must be implemented by child classes to execute the tool's functionality.
-        Args:
-            blocks (List[str]): The codes or queries blocks to execute
-            safety (bool): Whenever human intervention is required
-        Returns:
-            str: The output/result from executing the tool
-        """
-        pass
-
-    @abstractmethod
-    def execution_failure_check(self, output:str) -> bool:
-        """
-        Abstract method that must be implemented by child classes to check if tool execution failed.
-        Args:
-            output (str): The output string from the tool execution to analyze
-        Returns:
-            bool: True if execution failed, False if successful
+        子类必须实现的抽象方法，用于执行工具的功能。
+        参数：
+            blocks (List[str]): 要执行的代码或查询块
+            safety (bool): 是否需要人工干预
+        返回：
+            str: 执行工具后的输出结果
         """
         pass
 
     @abstractmethod
-    def interpreter_feedback(self, output:str) -> str:
+    def execution_failure_check(self, output: str) -> bool:
         """
-        Abstract method that must be implemented by child classes to provide feedback to the AI from the tool.
-        Args:
-            output (str): The output string from the tool execution to analyze
-        Returns:
-            str: The feedback message to the AI
+        子类必须实现的抽象方法，用于检查工具执行是否失败。
+        参数：
+            output (str): 工具执行后的输出结果
+        返回：
+            bool: 如果执行失败返回True，否则返回False
         """
         pass
 
-    def save_block(self, blocks:[str], save_path:str) -> None:
+    @abstractmethod
+    def interpreter_feedback(self, output: str) -> str:
         """
-        Save code or query blocks to a file at the specified path.
-        Creates the directory path if it doesn't exist.
-        Args:
-            blocks (List[str]): List of code/query blocks to save
-            save_path (str): File path where blocks should be saved
+        子类必须实现的抽象方法，用于根据工具的输出结果提供反馈。
+        参数：
+            output (str): 工具执行后的输出结果
+        返回：
+            str: AI的反馈消息
+        """
+        pass
+
+    def save_block(self, blocks: [str], save_path: str) -> None:
+        """
+        将代码或查询块保存到指定路径的文件中。
+        如果目录不存在，则创建目录路径。
+        参数：
+            blocks (List[str]): 要保存的代码/查询块列表
+            save_path (str): 保存的文件路径
         """
         if save_path is None:
             return
@@ -118,16 +117,16 @@ class Tools():
         save_path_file = os.path.basename(save_path)
         directory = os.path.join(self.current_dir, save_path_dir)
         if directory and not os.path.exists(directory):
-            print(f"Creating directory: {directory}")
+            print(f"创建目录: {directory}")
             os.makedirs(directory)
         for block in blocks:
-            print(f"Saving code block to: {save_path}")
+            print(f"将代码块保存到: {save_path}")
             with open(os.path.join(directory, save_path_file), 'w') as f:
                 f.write(block)
-    
+
     def found_executable_blocks(self):
         """
-        Check if executable blocks were found.
+        检查是否找到可执行的代码块。
         """
         tmp = self.excutable_blocks_found
         self.excutable_blocks_found = False
@@ -135,19 +134,19 @@ class Tools():
 
     def load_exec_block(self, llm_text: str) -> tuple[list[str], str | None]:
         """
-        Extract code/query blocks from LLM-generated text and process them for execution.
-        This method parses the text looking for code blocks marked with the tool's tag (e.g. ```python).
-        Args:
-            llm_text (str): The raw text containing code blocks from the LLM
-        Returns:
-            tuple[list[str], str | None]: A tuple containing:
-                - List of extracted and processed code blocks
-                - The path the code blocks was saved to
+        从LLM生成的文本中提取代码/查询块，并处理它们以便执行。
+        该方法解析文本，查找标记为工具标签的代码块（例如 ```python）。
+        参数：
+            llm_text (str): 包含LLM生成的代码块的原始文本
+        返回：
+            tuple[list[str], str | None]: 一个包含以下内容的元组：
+                - 提取并处理后的代码块列表
+                - 保存代码块的路径（如果存在）
         """
-        assert self.tag != "undefined", "Tag not defined"
-        start_tag = f'```{self.tag}' 
-        end_tag = '```'
-        code_blocks = []
+        assert self.tag != "undefined", "标签未定义"
+        start_tag = f'```{self.tag}'  # 起始标签
+        end_tag = '```'  # 结束标签
+        code_blocks = []  # 存储代码块的列表
         start_index = 0
         save_path = None
 
@@ -180,17 +179,18 @@ class Tools():
 
             if ':' in content.split('\n')[0]:
                 save_path = content.split('\n')[0].split(':')[1]
-                content = content[content.find('\n')+1:]
+                content = content[content.find('\n') + 1:]
             self.excutable_blocks_found = True
             code_blocks.append(content)
             start_index = end_pos + len(end_tag)
         return code_blocks, save_path
 
+
 if __name__ == "__main__":
     tool = Tools()
-    tool.tag = "python"
+    tool.tag = "python"# 设置工具的标签为python
     rt = tool.load_exec_block("""
-Got it, let me show you the Python files in the current directory using Python:
+明白了，让我展示一下当前目录下的Python文件：
 
 ```python
 import os
@@ -200,4 +200,4 @@ for file in os.listdir():
         print(file)
 ```
     """)
-    print(rt)
+    print(rt) # 输出提取的代码块和保存路径

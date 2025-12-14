@@ -1,17 +1,17 @@
 #!/bin/bash
 
-echo "Starting installation for Linux..."
+echo "开始安装 Linux..."
 
-# Update package list
+# 更新包列表
 sudo apt-get update
 
-# Install Python dependencies from requirements.txt
+# 从 requirements.txt 安装 Python 依赖项
 pip3 install -r requirements.txt
 
-# Install Selenium for chromedriver
+# 安装 Selenium for chromedriver
 pip3 install selenium
 
-# Install portaudio for pyAudio
+# 为 pyAudio 安装 portaudio
 sudo apt-get install -y portaudio19-dev python3-dev alsa-utils
 
-echo "Installation complete for Linux!"
+echo "Linux 安装完成！"
